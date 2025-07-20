@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Activator Console</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 8px 0; background: white; padding: 10px; border-radius: 5px; }
+    .api-row { display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+  <h2>🌐 Activator Console</h2>
+
+  <input type="text" id="apiInput" placeholder="https://your-api.com" />
+  <button onclick="addAPI()">➕ Add API</button>
+  <button onclick="pingAll()">🔁 Ping All</button>
+
+  <ul id="apiList"></ul>
+
+  <script>
+    async function fetchAPIs() {
+      const res = await fetch('/api/list');
+      const apis = await res.json();
+      const list = document.getElementById('apiList');
+      list.innerHTML = '';
+      apis.forEach(url => {
+        const li = document.createElement('li');
+        li.innerHTML = `<div class="api-row">
+          <span>${url}</span>
+          <button onclick="deleteAPI('${url}')">❌ Delete</button>
+        </div>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function addAPI() {
+      const url = document.getElementById('apiInput').value;
+      if (!url) return alert('Enter URL');
+      await fetch('/api/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      document.getElementById('apiInput').value = '';
+      fetchAPIs();
+    }
+
+    async function deleteAPI(url) {
+      await fetch('/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      fetchAPIs();
+    }
+
+    async function pingAll() {
+      await fetch('/api/ping');
+      alert('✅ Pinged all APIs!');
+    }
+
+    fetchAPIs();
+  </script>
+</body>
+</html>
